@@ -1,4 +1,4 @@
-# Remote Windows Host Compiler
+# Remote C Windows Host Compiler
 
 This script is designed to compile C code on a remote Windows host. It copies the source code from the local machine to the remote host, compiles it using GCC, then copies the resulting executable back to the local machine. The script also cleans up after itself by removing the source and executable files from the remote host upon successful completion.
 

@@ -10,7 +10,7 @@ This script is designed to compile C code on a remote Windows host. It copies th
 
 ## Installation
 
-1. Save the script to a file, for example `remote_compiler.sh`, in `/usr/local/bin` directory to make it accessible from any directory:
+1. Save the script to a file, for example `windows_build`, in `/usr/local/bin` directory to make it accessible from any directory:
 
 	```bash
 	sudo mv windows_build /usr/local/bin/

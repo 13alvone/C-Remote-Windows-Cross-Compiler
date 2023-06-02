@@ -97,4 +97,19 @@ if [[ ! -f "${FILENAME}.exe" || ! -x "${FILENAME}.exe" ]]; then
 fi
 
 log "Successfully compiled and copied the executable."
+
+# Cleanup remote files
+if [[ -z "$SSH_PASS" ]]; then
+    OUTPUT=$(ssh "${USER}@${HOST}" "rm -f ${DST_PATH} ${EXE_PATH}" 2>&1)
+else
+    OUTPUT=$(sshpass -p "$SSH_PASS" ssh "${USER}@${HOST}" "rm -f ${DST_PATH} ${EXE_PATH}" 2>&1)
+fi
+
+if [[ $? -ne 0 ]]; then
+    log "Error: Failed to remove remote files."
+    log "Details: ${OUTPUT}"
+    exit 1
+fi
+
+log "Successfully removed remote files."
 exit 0

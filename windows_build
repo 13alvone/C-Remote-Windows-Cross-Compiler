@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# Logging function
+log() {
+    local message="$1"
+    local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+    echo "${timestamp} ${message}"
+}
+
+# Check for necessary tools
+for cmd in ssh scp gcc sshpass; do
+    if ! command -v $cmd >/dev/null; then
+        log "Error: ${cmd} command not found. Please install it before running the script."
+        exit 1
+    fi
+done
+
+# Check if source file path is provided and exists
+if [[ -z "$1" || ! -f "$1" ]]; then
+    log "Error: Valid source file path is not provided."
+    log "Usage: ./script.sh <source_file_path>"
+    exit 1
+fi
+
+SRC_PATH="$1"
+BASENAME="$(basename -- "$SRC_PATH")"
+FILENAME="${BASENAME%.*}"
+EXE_PATH="c:/windows/temp/${FILENAME}.exe"
+DST_PATH="c:/windows/temp/${FILENAME}.c"
+
+# Check if environment variables are set, if not ask user
+if [[ -z "$WINDOWS_BUILD_USER" ]]; then
+    read -p "Enter your Windows build user: " WINDOWS_BUILD_USER
+    log "To save this permanently, run the command: export WINDOWS_BUILD_USER=${WINDOWS_BUILD_USER}"
+fi
+
+if [[ -z "$WINDOWS_BUILD_HOST" ]]; then
+    read -p "Enter your Windows build host: " WINDOWS_BUILD_HOST
+    log "To save this permanently, run the command: export WINDOWS_BUILD_HOST=${WINDOWS_BUILD_HOST}"
+fi
+
+USER="${WINDOWS_BUILD_USER}"
+HOST="${WINDOWS_BUILD_HOST}"
+
+# Check for SSH key and prompt user to create one if not exist
+if [[ $(ssh-add -L) == "The agent has no identities." ]]; then
+    echo "No SSH key found. You should enter your password for the remote host."
+    read -sp "Enter your password: " SSH_PASS
+fi
+echo ""
+
+# Copy source file to remote host
+if [[ -z "$SSH_PASS" ]]; then
+    OUTPUT=$(scp "${SRC_PATH}" "${USER}@${HOST}:${DST_PATH}" 2>&1)
+else
+    OUTPUT=$(sshpass -p "$SSH_PASS" scp "${SRC_PATH}" "${USER}@${HOST}:${DST_PATH}" 2>&1)
+fi
+
+if [[ $? -ne 0 ]]; then
+    log "Error: Failed to copy source file to remote host."
+    log "Details: ${OUTPUT}"
+    exit 1
+fi
+
+# SSH into the remote host and compile the source file
+if [[ -z "$SSH_PASS" ]]; then
+    OUTPUT=$(ssh "${USER}@${HOST}" "cd c:/windows/temp && gcc -o ${FILENAME}.exe ${FILENAME}.c" 2>&1)
+else
+    OUTPUT=$(sshpass -p "$SSH_PASS" ssh "${USER}@${HOST}" "cd c:/windows/temp && gcc -o ${FILENAME}.exe ${FILENAME}.c" 2>&1)
+fi
+
+if [[ $? -ne 0 ]]; then
+    log "Error: SSH connection failed or GCC compilation failed."
+    log "Details: ${OUTPUT}"
+    exit 1
+fi
+echo "[+] Remote Compilation Results:"
+echo "$OUTPUT"
+
+# Copy the compiled exe file back to local host
+if [[ -z "$SSH_PASS" ]]; then
+    OUTPUT=$(scp "${USER}@${HOST}:${EXE_PATH}" "." 2>&1)
+else
+    OUTPUT=$(sshpass -p "$SSH_PASS" scp "${USER}@${HOST}:${EXE_PATH}" "." 2>&1)
+fi
+
+if [[ $? -ne 0 ]]; then
+    log "Error: Failed to copy compiled file to local host."
+    log "Details: ${OUTPUT}"
+    exit 1
+fi
+
+# Check if the copied file exists and is executable in local directory
+if [[ ! -f "${FILENAME}.exe" || ! -x "${FILENAME}.exe" ]]; then
+    log "Error: The compiled file does not exist or is not executable in the local directory."
+    exit 1
+fi
+
+log "Successfully compiled and copied the executable."
+exit 0

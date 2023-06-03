@@ -38,7 +38,7 @@ Now you can run `windows_build` from any directory on your system.
 
 	Replace `source_file.c` with the path to the source file you want to compile.
 
-	![usage_image](Cspeakes_working_example_pic.png)
+	![usage_image](Cspeakes_example_with_upx.png)
 
 4. If you haven't already, you will be prompted to enter the remote Windows build user and host. You can set these permanently by adding the following commands into your local MacOS user .profile file:
 

@@ -1,6 +1,6 @@
 # Remote C Windows Host Compiler
 
-This script is designed to compile C code on a remote Windows host. It copies the source code from the local MacOS machine to the remote Windows host, compiles it using GCC, then copies the resulting executable back to the local MacOS machine. The script also cleans up after itself by removing the source and executable files from the remote host upon successful completion. The script also produces a general packed version of the resulting executable so as to have a comparison in disassembly.
+This script is designed to compile C code on a remote Windows host. It copies the source code from the local MacOS machine to the remote Windows host, compiles it using GCC, then copies the resulting executable back to the local MacOS machine. The script also cleans up after itself by removing the source and executable files from the remote host upon successful completion. The script also produces a general packed version of the resulting executable so as to have a comparison in disassembly. These steps are taken to administer my personal learning in reverse engineering simple c programs written against Windows Endpoints and to allow simple program creation/building/testing all using Radare2 on my local preferred OS choice, MacOS.
 
 ## Prerequisites
 

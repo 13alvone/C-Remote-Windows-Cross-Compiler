@@ -15,10 +15,16 @@ for cmd in ssh scp gcc sshpass; do
     fi
 done
 
+# Check for UPX
+if ! command -v upx >/dev/null; then
+    log "Error: upx command not found. Please install it before running the script."
+    exit 1
+fi
+
 # Check if source file path is provided and exists
 if [[ -z "$1" || ! -f "$1" ]]; then
     log "Error: Valid source file path is not provided."
-    log "Usage: ./script.sh <source_file_path>"
+    log "Usage: ./windows_build <source_file_path>"
     exit 1
 fi
 
@@ -97,6 +103,15 @@ if [[ ! -f "${FILENAME}.exe" || ! -x "${FILENAME}.exe" ]]; then
 fi
 
 log "Successfully compiled and copied the executable."
+
+# Pack the executable using UPX
+upx -o "${FILENAME}_packed.exe" "${FILENAME}.exe"
+if [[ ! -f "${FILENAME}_packed.exe" ]]; then
+    log "Error: Failed to pack the executable with UPX."
+    exit 1
+fi
+
+log "Successfully packed the executable using UPX."
 
 # Cleanup remote files
 if [[ -z "$SSH_PASS" ]]; then
